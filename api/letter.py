@@ -1,10 +1,9 @@
-from bottle import request, response
-from bottle import post, get, put, delete
-# import re
 import json
-from data.pile import get_pile, store_letter
 
-# stamppattern = re.compile(r'^[a-zA-Z\d]{1,64}$')
+from bottle import post, get, put
+from bottle import request, response
+
+from data.letter import Letter
 
 
 @post('/letter')
@@ -14,27 +13,9 @@ def creation_handler():
         # parse input data
         try:
             data = request.json
-            print(data)
         except:
             raise ValueError
-
-        if data is None:
-            raise ValueError
-        # extract and validate name
-        try:
-            # if namepattern.match(letter['stamp']) is None:
-            #    raise ValueError
-            stamp = data[0]
-            letter = data[1]
-            print(stamp)
-        except (TypeError, KeyError):
-            raise ValueError
-        # check for existence
-        pile = get_pile()
-        print(pile)
-        print(stamp in pile)
-        if stamp in pile:
-            raise KeyError
+        stored = Letter(data).store_letter()
     except ValueError:
         # if bad request data, return 400 Bad Request
         response.status = 400
@@ -43,12 +24,9 @@ def creation_handler():
         # if name already exists, return 409 Conflict
         response.status = 409
         return
-    # add name
-    print(letter)
-    store_letter(stamp, letter)
     # return 200 Success
     response.headers['Content-Type'] = 'application/json'
-    return json.dumps(letter)
+    return json.dumps(stored)
 
 
 @get('/letter/<stamp>')

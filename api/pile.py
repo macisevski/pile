@@ -1,7 +1,8 @@
-from bottle import request, response
-from bottle import get, put, delete
-import re
 import json
+
+from bottle import get
+from bottle import response
+
 from data import pile
 
 

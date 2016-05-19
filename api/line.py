@@ -1,8 +1,9 @@
-from bottle import request, response
-from bottle import post, get, put, delete
-import re
 import json
-from data import pile, letter
+
+from bottle import get, put
+from bottle import response
+
+from data import pile
 
 
 @get('/paper/<stamp>/record/<signet>')

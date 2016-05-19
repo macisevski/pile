@@ -1,26 +1,23 @@
-from . import db
 
+class Pile:
+    def __init__(self, db):
+        self.db = db
 
-def get_pile():
-    return [item for item in db]
+    def get_pile(self):
+        return [item for item in self.db]
 
+    def find_letter(self, stamp):
+        try:
+            letter = self.db[stamp]
+        except KeyError:
+            raise KeyError
+        finally:
+            return letter
 
-def find_letter(stamp):
-    try:
-        letter = db[stamp]
-    except KeyError:
-        letter = "KeyError"
-    finally:
+    def store_letter(self, stamp, letter):
+        self.db[stamp] = letter
         return letter
 
-
-@db.commit_on_success
-def store_letter(stamp, letter):
-    db[stamp] = letter
-    return
-
-
-@db.commit_on_success
-def bin_letter(stamp):
-    db.delete(stamp)
-    return
+    def bin_letter(self, stamp):
+        self.db.delete(stamp)
+        return
