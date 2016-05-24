@@ -8,21 +8,18 @@ class Pile:
 
     def find(self, stamp):
         try:
-            letter = self.db[stamp]
+            return self.db[stamp]
         except KeyError:
             raise KeyError
-        finally:
-            return letter
 
-    def add(self, envelope):
-        if self.find():
+    def add(self, stamp, letter):
+        print(123)
+        print(self.find(stamp))
+        if self.find(stamp):
             raise KeyError
-        return pile.store_letter(self.stamp, self.letter)
-
-    def store_letter(self, stamp, letter):
         self.db[stamp] = letter
-        return letter
+        return self.find(stamp)
 
-    def bin_letter(self, stamp):
+    def bin(self, stamp):
         self.db.delete(stamp)
         return

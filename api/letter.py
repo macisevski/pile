@@ -2,7 +2,7 @@ from bottle import post, get, put
 from bottle import request, response
 import json
 import re
-from . import pile
+from data import pile
 
 stamppattern = re.compile(r'^[a-zA-Z\d]{1,64}$')
 
@@ -18,12 +18,13 @@ def creation_handler():
             raise ValueError
         # extract and validate contents
         try:
-            if stamppattern.match(envelope[0]) is None:
+            stamp = envelope[0]
+            letter = envelope[1]
+            if stamppattern.match(stamp) is None:
                 raise ValueError
         except (TypeError, KeyError):
             raise ValueError
-        pile.add(envelope)
-        stored = Letter(data).store_letter()
+        ret = pile.add(stamp, letter)
     except ValueError:
         # if bad request data, return 400 Bad Request
         response.status = 400
@@ -34,7 +35,7 @@ def creation_handler():
         return
     # return 200 Success
     response.headers['Content-Type'] = 'application/json'
-    return json.dumps(stored)
+    return json.dumps(ret)
 
 
 @get('/letter/<stamp>')
