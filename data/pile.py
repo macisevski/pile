@@ -3,23 +3,24 @@ class Pile:
     def __init__(self, db):
         self.db = db
 
-    def get_pile(self):
+    def list(self):
         return [item for item in self.db]
 
     def find(self, stamp):
         try:
             return self.db[stamp]
         except KeyError:
-            raise KeyError
+            raise
 
     def add(self, stamp, letter):
-        print(123)
-        print(self.find(stamp))
-        if self.find(stamp):
+        if not self.db.exists(stamp):
+            self.db[stamp] = letter
+        else:
             raise KeyError
-        self.db[stamp] = letter
         return self.find(stamp)
 
     def bin(self, stamp):
-        self.db.delete(stamp)
-        return
+        try:
+            self.db.delete(stamp)
+        except KeyError:
+            raise

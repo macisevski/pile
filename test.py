@@ -14,3 +14,7 @@ print(resp, content)
 url = 'http://127.0.0.1:8000/pile'
 resp, content = h.request(url, 'GET')
 print(resp, '\n', content)
+
+url = 'http://127.0.0.1:8000/pile'
+resp, content = h.request(url, 'GET')
+print(resp, '\n', content)
