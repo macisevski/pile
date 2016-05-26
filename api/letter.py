@@ -4,7 +4,7 @@ import json
 import re
 from data import pile
 
-stamppattern = re.compile(r'^[a-zA-Z\d]{1,64}$')
+stamp_pattern = re.compile(r'^[a-zA-Z\d]{1,64}$')
 
 
 @post('/letter')
@@ -20,7 +20,7 @@ def creation_handler():
         try:
             stamp = envelope[0]
             letter = envelope[1]
-            if stamppattern.match(stamp) is None:
+            if stamp_pattern.match(stamp) is None:
                 raise ValueError
         except (TypeError, KeyError):
             raise ValueError
@@ -48,41 +48,33 @@ def listing_handler(stamp):
 
 @put('/pll/<stamp>')
 def update_handler(stamp):
-    """Handles name updates"""
+    """Handles letter updates"""
     try:
         # parse input data
         try:
-            letter = json.load(request.body)
+            envelope = request.json
         except:
             raise ValueError
-
-        # extract and validate new name
+        # extract and validate contents
         try:
-            if namepattern.match(letter['name']) is None:
+            stamp = envelope[0]
+            letter = envelope[1]
+            if stamp_pattern.match(stamp) is None:
                 raise ValueError
-            newstamp = letter['name']
         except (TypeError, KeyError):
             raise ValueError
-
-        # check if updated name exists
+        # check if updated stamp exists
         if stamp not in pile.get_pile():
             raise KeyError(404)
-
-        # check if new name exists
-        if newstamp in pile.get_pile():
-            raise KeyError(409)
-
     except ValueError:
         response.status = 400
         return
     except KeyError as e:
         response.status = e.args[0]
         return
-
     # add new name and remove old name
-    letter.remove_letter(stamp)
-    letter.add_letter(newstamp)
-
+    pile.bin(stamp)
+    ret = pile.add(stamp, letter)
     # return 200 Success
     response.headers['Content-Type'] = 'application/json'
-    return json.dumps({'name': newstamp})
+    return json.dumps(ret)
