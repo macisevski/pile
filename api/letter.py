@@ -1,4 +1,4 @@
-from bottle import post, get, put
+from bottle import post, get, put, delete
 from bottle import request, response
 import json
 import re
@@ -46,7 +46,7 @@ def listing_handler(stamp):
     return json.dumps({'letter': pile.get_letter(stamp)})
 
 
-@put('/pll/<stamp>')
+@put('/letter/update/<stamp>')
 def update_handler(stamp):
     """Handles letter updates"""
     try:
@@ -63,18 +63,27 @@ def update_handler(stamp):
                 raise ValueError
         except (TypeError, KeyError):
             raise ValueError
-        # check if updated stamp exists
-        if stamp not in pile.get_pile():
-            raise KeyError(404)
+        # add new name and remove old name
+        pile.bin(stamp)
+        ret = pile.add(stamp, letter)
     except ValueError:
         response.status = 400
         return
     except KeyError as e:
         response.status = e.args[0]
         return
-    # add new name and remove old name
-    pile.bin(stamp)
-    ret = pile.add(stamp, letter)
     # return 200 Success
     response.headers['Content-Type'] = 'application/json'
     return json.dumps(ret)
+
+
+@delete('/letter/remove/<stamp>')
+def delete_handler(stamp):
+    """Handles letter removals"""
+    try:
+        # remove name
+        pile.bin(stamp)
+    except KeyError:
+        response.status = 404
+        return
+    return
