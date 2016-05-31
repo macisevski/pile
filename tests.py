@@ -97,23 +97,24 @@ class RandomEnvelope(list):
 
 class TestLetterPosts(unittest.TestCase):
     def setUp(self):
-        self.letter = RandomEnvelope(100, 100, 10, 25).letter_generator()
+        self.envelope = RandomEnvelope(100, 100, 10, 25).envelope_generator()
 
     @generic_log
     @mock.patch('pll.pile.add')
     def test_post_200(self, mock_pile_add):
-        mock_pile_add.return_value = json.dumps(self.letter)
-        response = app.post_json('/letter', self.letter)
-        assert response.json == json.dumps(self.letter)
+        mock_pile_add.return_value = json.dumps(self.envelope)
+        response = app.post_json('/letter', self.envelope)
+        assert response.json == json.dumps(self.envelope)
 
-    def test_post_409(self):
-        letter = ["stamp1", [{'column1': 'row1'}, {'column1': 'row2'}]]
-        response = app.post_json('/letter', letter, status=409)
+    @mock.patch('pll.pile.add')
+    def test_post_409(self, mock_pile_add):
+        mock_pile_add.side_effect = KeyError
+        response = app.post_json('/letter', self.envelope, status=409)
         self.assertEqual(response.status_int, 409)
 
 
 ###############################################################################
-# Model Testing# ###############################################################
+# Model Testing ################################################################
 ###############################################################################
 
 class TestPile(unittest.TestCase):
