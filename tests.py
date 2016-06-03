@@ -9,11 +9,9 @@ from random import choice, randint
 from string import ascii_letters, digits
 
 from webtest import TestApp
+from unqlite import UnQLite
 
-from pll import wsgi_app
-
-
-app = TestApp(wsgi_app)
+from pll import wsgi_app, Pile
 
 
 ###############################################################################
@@ -95,6 +93,9 @@ class RandomEnvelope(list):
 # Api Testing ##################################################################
 ###############################################################################
 
+app = TestApp(wsgi_app)
+
+
 class TestLetterPosts(unittest.TestCase):
     def setUp(self):
         self.envelope = RandomEnvelope(100, 100, 10, 25).envelope_generator()
@@ -119,5 +120,11 @@ class TestLetterPosts(unittest.TestCase):
 
 class TestPile(unittest.TestCase):
     def setUp(self):
-        self.db = tempfile.mktemp()
+        self.db = UnQLite(tempfile.mktemp())
+        self.pile = Pile(self.db)
+        self.db["1"] = "1"
+
+    def test_list(self):
+        assert self.pile.list() == [item for item in self.db]
+
 
