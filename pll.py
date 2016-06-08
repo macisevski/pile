@@ -101,7 +101,7 @@ def listing_handler(stamp):
     """Handles letter listing"""
     response.headers['Content-Type'] = 'application/json'
     response.headers['Cache-Control'] = 'no-cache'
-    return json.dumps({'letter': pile.get_letter(stamp)})
+    return json.dumps(pile.find(stamp))
 
 
 @put('/letter/update/<stamp>')

@@ -15,52 +15,9 @@ from pll import wsgi_app, Pile
 
 
 ###############################################################################
-# Logging ######################################################################
-###############################################################################
-
-class _LogTracer(object):
-    def __init__(self):
-        self._last_frame = None
-
-    def tracer(self, frame, event, *extras):
-        if event == 'return':
-            self._last_frame = frame
-
-    @property
-    def last_frame(self):
-        return self._last_frame
-
-
-def log_locals_on_exit(fn):
-    @functools.wraps(fn)
-    def inner(*args, **kwargs):
-        log_tracer = _LogTracer()
-        sys.setprofile(log_tracer.tracer)
-        try:
-            result = fn(*args, **kwargs)
-        finally:
-            sys.setprofile(None)
-        frame = log_tracer.last_frame
-
-        _locals = {}
-        for k, v in frame.f_locals.items():
-            _locals[k] = repr(v)
-        logging.info(_locals)
-        return result
-    return inner
-
-
-def generic_log(fn):
-    fn = log_locals_on_exit(fn)
-    #fn = log_entry(fn)
-    return fn
-
-
-###############################################################################
 # Utility ######################################################################
 ###############################################################################
 
-@generic_log
 def string_generator(max_length):
     length = randint(1, max_length)
     return ''.join([choice(ascii_letters + digits) for _ in range(length)])
@@ -100,7 +57,6 @@ class TestLetterPosts(unittest.TestCase):
     def setUp(self):
         self.envelope = RandomEnvelope(100, 100, 10, 25).envelope_generator()
 
-    @generic_log
     @mock.patch('pll.pile.add')
     def test_post_200(self, mock_pile_add):
         mock_pile_add.return_value = json.dumps(self.envelope)
@@ -114,6 +70,17 @@ class TestLetterPosts(unittest.TestCase):
         self.assertEqual(response.status_int, 409)
 
 
+class TestLetterGets(unittest.TestCase):
+    def setUp(self):
+        self.envelope = RandomEnvelope(100, 100, 10, 25).envelope_generator()
+
+    @mock.patch('pll.pile.find')
+    def test_get_200(self, mock_pile_find):
+        mock_pile_find.return_value = json.dumps(self.envelope)
+        response = app.get('/letter/{}'.format(self.envelope[0]))
+        assert response.json == json.dumps(self.envelope)
+
+
 ###############################################################################
 # Model Testing ################################################################
 ###############################################################################
@@ -122,9 +89,12 @@ class TestPile(unittest.TestCase):
     def setUp(self):
         self.db = UnQLite(tempfile.mktemp())
         self.pile = Pile(self.db)
-        self.db["1"] = "1"
+        self.db['1'] = "1"
 
     def test_list(self):
         assert self.pile.list() == [item for item in self.db]
+
+    def test_find(self):
+        assert self.pile.find('1') == self.db['1']
 
 
